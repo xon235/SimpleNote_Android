@@ -33,22 +33,20 @@ public class SimpleNoteAppWidgetProvider extends AppWidgetProvider {
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
 
-        if(mUri == null){
-            return;
-        }
-
         for(int i = 0; i < appWidgetIds.length; i++){
             SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
             String uriString = sharedPreferences.getString(String.valueOf(appWidgetIds[i]), "");
+
+            if(uriString.equals("")){
+                continue;
+            }
+
+            mUri = Uri.parse(uriString);
 
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.appwidget_note);
             Intent intent = new Intent(context, EditorActivity.class);
             intent.putExtra(NotesProvider.CONTENT_ITEM_TYPE, mUri);
             PendingIntent pendingIntent = PendingIntent.getActivity(context, appWidgetIds[i], intent, 0);
-
-            if(!uriString.equals(mUri.toString())){
-                continue;
-            }
 
             if(mNoteDeleted){
                 pendingIntent.cancel();
