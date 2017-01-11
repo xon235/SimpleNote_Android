@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
+import android.database.CursorIndexOutOfBoundsException;
 import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.widget.RemoteViews;
@@ -41,32 +42,43 @@ public class SimpleNoteAppWidgetProvider extends AppWidgetProvider {
                 continue;
             }
 
-            mUri = Uri.parse(uriString);
-
             RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.appwidget_note);
-            Intent intent = new Intent(context, EditorActivity.class);
-            intent.putExtra(NotesProvider.CONTENT_ITEM_TYPE, mUri);
-            PendingIntent pendingIntent = PendingIntent.getActivity(context, appWidgetIds[i], intent, 0);
 
-            if(mNoteDeleted){
+            if(mNoteDeleted && uriString.equals(mUri.toString())){
+                Intent intent = new Intent(context, EditorActivity.class);
+                intent.putExtra(NotesProvider.CONTENT_ITEM_TYPE, mUri);
+                PendingIntent pendingIntent = PendingIntent.getActivity(context, appWidgetIds[i], intent, 0);
+
                 pendingIntent.cancel();
 
                 views.setTextViewText(R.id.contentTv, "");
                 views.setInt(R.id.frameLayout, "setBackgroundResource", R.color.widgetTopDisabled);
                 views.setInt(R.id.contentTv, "setBackgroundResource", R.color.widgetBackgroundDisabled);
             } else {
-                String noteFilter = DBOpenHelper.NOTE_ID + "=" + mUri.getLastPathSegment();
+                Uri uri = Uri.parse(uriString);
+                Intent intent = new Intent(context, EditorActivity.class);
+                intent.putExtra(NotesProvider.CONTENT_ITEM_TYPE, uri);
+                PendingIntent pendingIntent = PendingIntent.getActivity(context, appWidgetIds[i], intent, 0);
 
-                Cursor cursor = context.getContentResolver().query(mUri,
+                String noteFilter = DBOpenHelper.NOTE_ID + "=" + uri.getLastPathSegment();
+
+                Cursor cursor = context.getContentResolver().query(uri,
                         DBOpenHelper.ALL_COLUMNS, noteFilter, null, null);
 
                 cursor.moveToFirst();
-                String text = cursor.getString(cursor.getColumnIndex(DBOpenHelper.NOTE_TEXT));
+
+                try {
+                    String text = cursor.getString(cursor.getColumnIndex(DBOpenHelper.NOTE_TEXT));
+                    views.setOnClickPendingIntent(R.id.contentTv, pendingIntent);
+                    views.setTextViewText(R.id.contentTv, text);
+                } catch (CursorIndexOutOfBoundsException e) {
+                    e.printStackTrace();
+                    pendingIntent.cancel();
+                    views.setTextViewText(R.id.contentTv, "");
+                    views.setInt(R.id.frameLayout, "setBackgroundResource", R.color.widgetTopDisabled);
+                    views.setInt(R.id.contentTv, "setBackgroundResource", R.color.widgetBackgroundDisabled);
+                }
                 cursor.close();
-
-                views.setOnClickPendingIntent(R.id.contentTv, pendingIntent);
-
-                views.setTextViewText(R.id.contentTv, text);
             }
 
             // Tell the AppWidgetManager to perform an update on the current app widget
