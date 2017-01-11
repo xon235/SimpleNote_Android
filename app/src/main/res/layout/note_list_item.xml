@@ -22,7 +22,7 @@
             android:id="@+id/tvNote"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:singleLine="true"
+            android:maxLines="1"
             android:text="Dummy Text"
             android:textColor="@color/textPrimary"
             android:textSize="16sp" />
@@ -31,7 +31,7 @@
             android:id="@+id/tvDate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:singleLine="true"
+            android:maxLines="1"
             android:text="Dummy Text"
             android:textColor="@color/textSecondary"
             android:textSize="14sp" />

@@ -36,8 +36,8 @@ public class MainActivity extends AppCompatActivity
 
     public static final int EDITOR_REQUEST_CODE = 100;
     public static final String KEY_PREF_CURRENT = "pref_current";
-    private CursorAdapter cursorAdapter;
-    private SharedPreferences sharedPref;
+    private CursorAdapter mCursorAdapter;
+    private SharedPreferences mSharedPref;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,8 +56,8 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        cursorAdapter = new NotesCursorAdapter(this, null, 0);
-        cursorAdapter.setFilterQueryProvider(new FilterQueryProvider() {
+        mCursorAdapter = new NotesCursorAdapter(this, null, 0, true);
+        mCursorAdapter.setFilterQueryProvider(new FilterQueryProvider() {
             @Override
             public Cursor runQuery(CharSequence charSequence) {
                 String filter = DBOpenHelper.NOTE_TEXT + " Like \"%" + charSequence +"%\"";
@@ -67,7 +67,7 @@ public class MainActivity extends AppCompatActivity
         });
 
         final ListView list = (ListView) findViewById(R.id.listView);
-        list.setAdapter(cursorAdapter);
+        list.setAdapter(mCursorAdapter);
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
@@ -80,10 +80,10 @@ public class MainActivity extends AppCompatActivity
 
         getLoaderManager().initLoader(0, null, this);
 
-        sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        mSharedPref = PreferenceManager.getDefaultSharedPreferences(this);
 
-        if(sharedPref.getInt(KEY_PREF_CURRENT, -1) < 0){
-            SharedPreferences.Editor editor = sharedPref.edit();
+        if(mSharedPref.getInt(KEY_PREF_CURRENT, -1) < 0){
+            SharedPreferences.Editor editor = mSharedPref.edit();
             editor.putInt(KEY_PREF_CURRENT, 0);
             editor.apply();
             startActivity(new Intent(this, AboutActivity.class));
@@ -115,10 +115,10 @@ public class MainActivity extends AppCompatActivity
     private void checkCurrent(JSONObject responce) {
         try {
             int newCurrent = responce.getInt("current");
-            int myCurrent = sharedPref.getInt(KEY_PREF_CURRENT, -1);
+            int myCurrent = mSharedPref.getInt(KEY_PREF_CURRENT, -1);
 
             if(newCurrent > myCurrent){
-                SharedPreferences.Editor editor = sharedPref.edit();
+                SharedPreferences.Editor editor = mSharedPref.edit();
                 editor.putInt(KEY_PREF_CURRENT, newCurrent);
                 editor.apply();
                 startActivity(new Intent(this, NewsActivity.class));
@@ -145,7 +145,7 @@ public class MainActivity extends AppCompatActivity
     public boolean onPrepareOptionsMenu(Menu menu) {
         MenuItem alarmMenu = menu.findItem(R.id.action_alarm);
 
-        if(sharedPref.getBoolean(AlarmSettingsFragment.KEY_PREF_SET_ALARM, false)){
+        if(mSharedPref.getBoolean(AlarmSettingsFragment.KEY_PREF_SET_ALARM, false)){
             alarmMenu.setIcon(R.drawable.ic_alarm_check);
         } else {
             alarmMenu.setIcon(R.drawable.ic_alarm);
@@ -193,12 +193,12 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-        cursorAdapter.swapCursor(cursor);
+        mCursorAdapter.swapCursor(cursor);
     }
 
     @Override
     public void onLoaderReset(Loader<Cursor> loader) {
-        cursorAdapter.swapCursor(null);
+        mCursorAdapter.swapCursor(null);
     }
 
     @Override
@@ -215,7 +215,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onQueryTextChange(String s) {
-        cursorAdapter.getFilter().filter(s);
+        mCursorAdapter.getFilter().filter(s);
         return false;
     }
 }

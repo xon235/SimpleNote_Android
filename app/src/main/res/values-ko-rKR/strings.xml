@@ -40,4 +40,5 @@
     <string name="cancel">취소</string>
     <string name="about_text">이 앱은 광고가 없습니다. 하지만 1년에 몇 번 저의 새로운 게임이 나올 때 마다 새소식 창을 열어 알려드립니다. 제 앱을 이용해주셔서 감사합니다.</string>
     <string name="yi_su_ho_ncau_cse_14">Yi Su Ho\nCAU CSE 14</string>
+    <string name="title_activity_app_widget_configure">노트 선택</string>
 </resources>

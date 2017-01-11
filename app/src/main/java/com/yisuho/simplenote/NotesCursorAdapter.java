@@ -20,8 +20,11 @@ import java.util.Locale;
  */
 public class NotesCursorAdapter extends CursorAdapter {
 
-    public NotesCursorAdapter(Context context, Cursor c, int flags) {
+    boolean mEnableImportant;
+
+    public NotesCursorAdapter(Context context, Cursor c, int flags, boolean enableImportant) {
         super(context, c, flags);
+        mEnableImportant = enableImportant;
     }
 
     @Override
@@ -68,21 +71,26 @@ public class NotesCursorAdapter extends CursorAdapter {
         String noteId= cursor.getString(
                 cursor.getColumnIndex(DBOpenHelper.NOTE_ID)
         );
-        imageView.setTag(new MyTag(noteId, important));
 
-        imageView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(context instanceof MainActivity){
-                    MyTag myTag = (MyTag) view.getTag();
-                    ContentValues values = new ContentValues();
-                    values.put(DBOpenHelper.NOTE_IMPORTANT, (myTag.noteImportant == 1)? 0 : 1);
-                    String noteFilter = DBOpenHelper.NOTE_ID + "=" + myTag.getNoteId();
-                    context.getContentResolver().update(NotesProvider.CONTENT_URI, values, noteFilter, null);
-                    ((MainActivity) context).restartLoader();
+        if(mEnableImportant){
+            imageView.setTag(new MyTag(noteId, important));
+
+            imageView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if(context instanceof MainActivity){
+                        MyTag myTag = (MyTag) view.getTag();
+                        ContentValues values = new ContentValues();
+                        values.put(DBOpenHelper.NOTE_IMPORTANT, (myTag.noteImportant == 1)? 0 : 1);
+                        String noteFilter = DBOpenHelper.NOTE_ID + "=" + myTag.getNoteId();
+                        context.getContentResolver().update(NotesProvider.CONTENT_URI, values, noteFilter, null);
+                        ((MainActivity) context).restartLoader();
+                    }
                 }
-            }
-        });
+            });
+        } else{
+           imageView.setEnabled(false);
+        }
     }
 
     private class MyTag{

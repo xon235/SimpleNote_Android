@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorPrimary"
+    android:paddingTop="12dp"
+    android:id="@+id/frameLayout">
+
+    <TextView
+        android:padding="6dp"
+        android:textSize="16sp"
+        android:textColor="@color/textPrimary"
+        android:text="Hello my name is Yi Su Ho"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/contentTv"
+        android:background="@color/widgetBackground"/>
+</FrameLayout>

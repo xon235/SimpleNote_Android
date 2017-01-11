@@ -1,5 +1,7 @@
 package com.yisuho.simplenote;
 
+import android.appwidget.AppWidgetManager;
+import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -17,12 +19,16 @@ import android.widget.Toast;
 
 public class EditorActivity extends AppCompatActivity {
 
+    public static final String EXTRA_NOTE_DELETED = "NOTE DELETED";
+
     private String action;
     private EditText editor;
     private CheckBox checkBox;
     private String noteFilter;
     private String oldText;
     private boolean oldIsChecked;
+
+    private Uri mUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,23 +44,22 @@ public class EditorActivity extends AppCompatActivity {
 
         Intent intent = getIntent();
 
-        Uri uri = intent.getParcelableExtra(NotesProvider.CONTENT_ITEM_TYPE);
+        mUri = intent.getParcelableExtra(NotesProvider.CONTENT_ITEM_TYPE);
 
-        if(uri == null){
+        if(mUri == null){
             action = Intent.ACTION_INSERT;
             setTitle(getString(R.string.new_note));
         } else {
             action = Intent.ACTION_EDIT;
             setTitle(getString(R.string.edit_note));
-            noteFilter = DBOpenHelper.NOTE_ID + "=" + uri.getLastPathSegment();
+            noteFilter = DBOpenHelper.NOTE_ID + "=" + mUri.getLastPathSegment();
 
-            Cursor cursor = getContentResolver().query(uri,
+            Cursor cursor = getContentResolver().query(mUri,
                     DBOpenHelper.ALL_COLUMNS, noteFilter, null, null);
 
             cursor.moveToFirst();
             oldText = cursor.getString(cursor.getColumnIndex(DBOpenHelper.NOTE_TEXT));
             editor.setText(oldText);
-//            editor.requestFocus();
 
             oldIsChecked = (cursor.getInt(cursor.getColumnIndex(DBOpenHelper.NOTE_IMPORTANT)) == 1);
             checkBox.setChecked(oldIsChecked);
@@ -96,6 +101,16 @@ public class EditorActivity extends AppCompatActivity {
                             getContentResolver().delete(NotesProvider.CONTENT_URI, noteFilter, null);
                             Toast.makeText(EditorActivity.this, R.string.note_deleted,
                                     Toast.LENGTH_SHORT).show();
+
+                            Intent intent = new Intent(EditorActivity.this, SimpleNoteAppWidgetProvider.class);
+                            intent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+                            intent.putExtra(NotesProvider.CONTENT_ITEM_TYPE, mUri);
+                            intent.putExtra(EXTRA_NOTE_DELETED, true);
+                            int[] ids = AppWidgetManager.getInstance(EditorActivity.this)
+                                    .getAppWidgetIds(new ComponentName(getPackageName(), "com.yisuho.simplenote.SimpleNoteAppWidgetProvider"));
+                            intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS,ids);
+                            sendBroadcast(intent);
+
                             setResult(RESULT_OK);
                             finish();
                         }
@@ -148,6 +163,15 @@ public class EditorActivity extends AppCompatActivity {
 
         getContentResolver().update(NotesProvider.CONTENT_URI, values, noteFilter, null);
         Toast.makeText(this, R.string.note_updated, Toast.LENGTH_SHORT).show();
+
+        Intent intent = new Intent(this, SimpleNoteAppWidgetProvider.class);
+        intent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+        intent.putExtra(NotesProvider.CONTENT_ITEM_TYPE, mUri);
+        int[] ids = AppWidgetManager.getInstance(this)
+                .getAppWidgetIds(new ComponentName(getPackageName(), "com.yisuho.simplenote.SimpleNoteAppWidgetProvider"));
+        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS,ids);
+        sendBroadcast(intent);
+
         setResult(RESULT_OK);
         finish();
     }
