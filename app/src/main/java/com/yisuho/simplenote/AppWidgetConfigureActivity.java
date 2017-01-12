@@ -50,6 +50,16 @@ public class AppWidgetConfigureActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        //Init floating action button
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(AppWidgetConfigureActivity.this, EditorActivity.class);
+                startActivityForResult(intent, MainActivity.EDITOR_REQUEST_CODE);
+            }
+        });
+
         setResult(RESULT_CANCELED);
 
         Intent intent = getIntent();
@@ -111,6 +121,23 @@ public class AppWidgetConfigureActivity extends AppCompatActivity
         });
 
         getLoaderManager().initLoader(0, null, this);
+    }
+
+    @Override
+    protected void onResume() {
+        restartLoader();
+        super.onResume();
+    }
+
+    public void restartLoader() {
+        getLoaderManager().restartLoader(0, null, this);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(requestCode == MainActivity.EDITOR_REQUEST_CODE && resultCode == RESULT_OK){
+            restartLoader();
+        }
     }
 
     @Override
