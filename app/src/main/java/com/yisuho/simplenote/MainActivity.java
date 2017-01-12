@@ -156,6 +156,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         invalidateOptionsMenu();
+        restartLoader();
         super.onResume();
     }
 
