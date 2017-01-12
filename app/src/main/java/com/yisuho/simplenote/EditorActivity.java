@@ -66,7 +66,8 @@ public class EditorActivity extends AppCompatActivity {
                 checkBox.setChecked(oldIsChecked);
             } catch (CursorIndexOutOfBoundsException e) {
                 e.printStackTrace();
-                startActivity(new Intent(this, MainActivity.class));
+                action = Intent.ACTION_INSERT;
+                setTitle(getString(R.string.new_note));
             } finally {
                 cursor.close();
             }
