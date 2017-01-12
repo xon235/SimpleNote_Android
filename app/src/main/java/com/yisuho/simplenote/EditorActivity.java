@@ -6,6 +6,7 @@ import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
+import android.database.CursorIndexOutOfBoundsException;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
@@ -56,14 +57,19 @@ public class EditorActivity extends AppCompatActivity {
 
             Cursor cursor = getContentResolver().query(mUri,
                     DBOpenHelper.ALL_COLUMNS, noteFilter, null, null);
+            try{
+                cursor.moveToFirst();
+                oldText = cursor.getString(cursor.getColumnIndex(DBOpenHelper.NOTE_TEXT));
+                editor.setText(oldText);
 
-            cursor.moveToFirst();
-            oldText = cursor.getString(cursor.getColumnIndex(DBOpenHelper.NOTE_TEXT));
-            editor.setText(oldText);
-
-            oldIsChecked = (cursor.getInt(cursor.getColumnIndex(DBOpenHelper.NOTE_IMPORTANT)) == 1);
-            checkBox.setChecked(oldIsChecked);
-            cursor.close();
+                oldIsChecked = (cursor.getInt(cursor.getColumnIndex(DBOpenHelper.NOTE_IMPORTANT)) == 1);
+                checkBox.setChecked(oldIsChecked);
+            } catch (CursorIndexOutOfBoundsException e) {
+                e.printStackTrace();
+                startActivity(new Intent(this, MainActivity.class));
+            } finally {
+                cursor.close();
+            }
         }
     }
 

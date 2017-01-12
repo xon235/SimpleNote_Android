@@ -77,8 +77,9 @@ public class SimpleNoteAppWidgetProvider extends AppWidgetProvider {
                     views.setTextViewText(R.id.contentTv, "");
                     views.setInt(R.id.frameLayout, "setBackgroundResource", R.color.widgetTopDisabled);
                     views.setInt(R.id.contentTv, "setBackgroundResource", R.color.widgetBackgroundDisabled);
+                } finally {
+                    cursor.close();
                 }
-                cursor.close();
             }
 
             // Tell the AppWidgetManager to perform an update on the current app widget
