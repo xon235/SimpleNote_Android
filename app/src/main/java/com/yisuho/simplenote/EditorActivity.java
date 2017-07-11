@@ -12,22 +12,31 @@ import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
-import android.widget.EditText;
 import android.widget.Toast;
+
+import com.hendraanggrian.socialview.commons.Hashtag;
+import com.hendraanggrian.socialview.commons.HashtagAdapter;
+import com.hendraanggrian.widget.SocialAutoCompleteTextView;
+import com.hendraanggrian.widget.SocialEditText;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class EditorActivity extends AppCompatActivity {
 
     public static final String EXTRA_NOTE_DELETED = "NOTE DELETED";
 
-    private String action;
-    private EditText editor;
-    private CheckBox checkBox;
-    private String noteFilter;
-    private String oldText;
-    private boolean oldIsChecked;
+    private String mAction;
+    private SocialEditText mSocialAutoCompleteTextView;
+    private CheckBox mCheckBox;
+    private String mNoteFilter;
+    private String mOldText;
+    private boolean mOldIsChecked;
 
     private Uri mUri;
 
@@ -40,33 +49,51 @@ public class EditorActivity extends AppCompatActivity {
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        editor = (EditText) findViewById(R.id.editText);
-        checkBox = (CheckBox) findViewById(R.id.checkBox);
+        mSocialAutoCompleteTextView = (SocialEditText) findViewById(R.id.socialTextView);
+        mSocialAutoCompleteTextView.setMentionEnabled(false);
+        mSocialAutoCompleteTextView.setHyperlinkEnabled(false);
+
+        //AUTO COMPLETE FEATURE COULD BE ADDED IN THE FUTRE
+//        ArrayAdapter<Hashtag> hashtagAdapter = new MyHashtagAdapter(this);
+//        Cursor c = getContentResolver().query(NotesProvider.CONTENT_URI_TAGS, null, null, null, null);
+//        if(c != null){
+//            int textIndex = c.getColumnIndex(DBOpenHelper.TAGS_TEXT);
+//            int tagCountIndex = c.getColumnIndex(DBOpenHelper.TAGS_TAG_COUNT);
+//            while(c.moveToNext()){
+//                String hashTag = c.getString(textIndex).replaceFirst("\\#", "");
+//                int tagCount = c.getInt(tagCountIndex);
+//                hashtagAdapter.add(new Hashtag(hashTag, tagCount));
+//            }
+//        }
+//        c.close();
+//
+//        mSocialAutoCompleteTextView.setHashtagAdapter(hashtagAdapter);
+
+        mCheckBox = (CheckBox) findViewById(R.id.checkBox);
 
         Intent intent = getIntent();
-
         mUri = intent.getParcelableExtra(NotesProvider.CONTENT_ITEM_TYPE);
 
         if(mUri == null){
-            action = Intent.ACTION_INSERT;
+            mAction = Intent.ACTION_INSERT;
             setTitle(getString(R.string.new_note));
         } else {
-            action = Intent.ACTION_EDIT;
+            mAction = Intent.ACTION_EDIT;
             setTitle(getString(R.string.edit_note));
-            noteFilter = DBOpenHelper.NOTE_ID + "=" + mUri.getLastPathSegment();
+            mNoteFilter = DBOpenHelper.NOTE_ID + "=" + mUri.getLastPathSegment();
 
             Cursor cursor = getContentResolver().query(mUri,
-                    DBOpenHelper.ALL_COLUMNS, noteFilter, null, null);
+                    DBOpenHelper.TABLE_NOTES_ALL_COLUMNS, mNoteFilter, null, null);
             try{
                 cursor.moveToFirst();
-                oldText = cursor.getString(cursor.getColumnIndex(DBOpenHelper.NOTE_TEXT));
-                editor.setText(oldText);
+                mOldText = cursor.getString(cursor.getColumnIndex(DBOpenHelper.NOTE_TEXT));
+                mSocialAutoCompleteTextView.setText(mOldText);
 
-                oldIsChecked = (cursor.getInt(cursor.getColumnIndex(DBOpenHelper.NOTE_IMPORTANT)) == 1);
-                checkBox.setChecked(oldIsChecked);
+                mOldIsChecked = (cursor.getInt(cursor.getColumnIndex(DBOpenHelper.NOTE_IMPORTANT)) == 1);
+                mCheckBox.setChecked(mOldIsChecked);
             } catch (CursorIndexOutOfBoundsException e) {
                 e.printStackTrace();
-                action = Intent.ACTION_INSERT;
+                mAction = Intent.ACTION_INSERT;
                 setTitle(getString(R.string.new_note));
             } finally {
                 cursor.close();
@@ -76,7 +103,7 @@ public class EditorActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        if(action.equals(Intent.ACTION_EDIT)){
+        if(mAction.equals(Intent.ACTION_EDIT)){
             getMenuInflater().inflate(R.menu.menu_editor, menu);
         }
         return true;
@@ -98,6 +125,38 @@ public class EditorActivity extends AppCompatActivity {
         return true;
     }
 
+    private void finishEditing(){
+        String newText = mSocialAutoCompleteTextView.getText().toString().trim();
+        boolean isChecked = mCheckBox.isChecked();
+
+        switch (mAction) {
+            case Intent.ACTION_INSERT:
+                if(newText.length() == 0){
+                    cancelNote();
+                } else {
+                    Uri uri = insertNote(newText, isChecked);
+                    updateHashtags(newText, Integer.parseInt(uri.getLastPathSegment()));
+                    setResult(RESULT_OK);
+                    finish();
+                }
+                break;
+            case Intent.ACTION_EDIT:
+                if(newText.length() == 0){
+                    deleteNote();
+                } else if(mOldText.equals(newText) && isChecked == mOldIsChecked){
+                    cancelNote();
+                } else {
+                    updateNote(newText, isChecked);
+                    updateHashtags(newText, Integer.parseInt(mUri.getLastPathSegment()));
+                    setResult(RESULT_OK);
+                    finish();
+                }
+                break;
+            default:
+                cancelNote();
+        }
+    }
+
     private void deleteNote() {
         DialogInterface.OnClickListener dialogClickListener =
                 new DialogInterface.OnClickListener() {
@@ -105,7 +164,8 @@ public class EditorActivity extends AppCompatActivity {
                     public void onClick(DialogInterface dialog, int button) {
                         if (button == DialogInterface.BUTTON_POSITIVE) {
                             //Insert Data management code here
-                            getContentResolver().delete(NotesProvider.CONTENT_URI, noteFilter, null);
+                            getContentResolver().delete(NotesProvider.CONTENT_URI_NOTES, mNoteFilter, null);
+                            deleteAllHashTags(Integer.parseInt(mUri.getLastPathSegment()));
                             Toast.makeText(EditorActivity.this, R.string.note_deleted,
                                     Toast.LENGTH_SHORT).show();
 
@@ -130,30 +190,26 @@ public class EditorActivity extends AppCompatActivity {
                 .show();
     }
 
-    private void finishEditing(){
-        String newText = editor.getText().toString().trim();
-        boolean isChecked = checkBox.isChecked();
+    private void updateHashtags(String newText, int noteId) {
+        //First delet all hashtags for this note
+        deleteAllHashTags(noteId);
+        //Add all hashtags from this note
+        Pattern p = Pattern.compile("(#\\w+)");
+        Matcher m = p.matcher(newText);
+        while (m.find()) {
+            String h = m.group(1);
 
-        switch (action) {
-            case Intent.ACTION_INSERT:
-                if(newText.length() == 0){
-                    cancelNote();
-                } else {
-                    insertNote(newText, isChecked);
-                }
-                break;
-            case Intent.ACTION_EDIT:
-                if(newText.length() == 0){
-                    deleteNote();
-                } else if(oldText.equals(newText) && isChecked == oldIsChecked){
-                    cancelNote();
-                } else {
-                    updateNote(newText, isChecked);
-                }
-                break;
-            default:
-                cancelNote();
+            ContentValues values = new ContentValues();
+            values.put(DBOpenHelper.TAGS_NOTE_ID, noteId);
+            values.put(DBOpenHelper.TAGS_TEXT, h);
+
+            getContentResolver().insert(NotesProvider.CONTENT_URI_TAGS, values);
         }
+    }
+
+    private void deleteAllHashTags(int noteIde){
+        String s = DBOpenHelper.TAGS_NOTE_ID + "=" + noteIde;
+        getContentResolver().delete(NotesProvider.CONTENT_URI_TAGS, s, null);
     }
 
     private void cancelNote() {
@@ -168,7 +224,7 @@ public class EditorActivity extends AppCompatActivity {
         values.put(DBOpenHelper.NOTE_TEXT, noteText);
         values.put(DBOpenHelper.NOTE_IMPORTANT, important);
 
-        getContentResolver().update(NotesProvider.CONTENT_URI, values, noteFilter, null);
+        getContentResolver().update(NotesProvider.CONTENT_URI_NOTES, values, mNoteFilter, null);
         Toast.makeText(this, R.string.note_updated, Toast.LENGTH_SHORT).show();
 
         Intent intent = new Intent(this, SimpleNoteAppWidgetProvider.class);
@@ -178,28 +234,22 @@ public class EditorActivity extends AppCompatActivity {
                 .getAppWidgetIds(new ComponentName(getPackageName(), "com.yisuho.simplenote.SimpleNoteAppWidgetProvider"));
         intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS,ids);
         sendBroadcast(intent);
-
-        setResult(RESULT_OK);
-        finish();
     }
 
-    private void insertNote(String noteText, boolean isChecked) {
+    private Uri insertNote(String noteText, boolean isChecked) {
         int important = isChecked ? 1 : 0;
 
         ContentValues values = new ContentValues();
         values.put(DBOpenHelper.NOTE_TEXT, noteText);
         values.put(DBOpenHelper.NOTE_IMPORTANT, important);
 
-        getContentResolver().insert(NotesProvider.CONTENT_URI, values);
+        Uri uri = getContentResolver().insert(NotesProvider.CONTENT_URI_NOTES, values);
         Toast.makeText(this, R.string.note_saved, Toast.LENGTH_SHORT).show();
-        setResult(RESULT_OK);
-        finish();
+        return uri;
     }
 
     @Override
     public void onBackPressed() {
         finishEditing();
     }
-
-
 }

@@ -24,10 +24,11 @@
         android:text="@string/Important"
         android:textSize="16sp" />
 
-    <EditText
-        android:id="@+id/editText"
+    <com.hendraanggrian.widget.SocialEditText
+        android:id="@+id/socialTextView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@id/checkBox"
+        android:hint="@string/editor_hint"
         android:gravity="top" />
 </RelativeLayout>

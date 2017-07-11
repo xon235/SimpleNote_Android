@@ -14,5 +14,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:divider="@color/colorAccent"
-        android:dividerHeight="1dp" />
+        android:dividerHeight="1dp"
+        android:headerDividersEnabled="false"/>
 </RelativeLayout>

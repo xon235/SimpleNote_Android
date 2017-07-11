@@ -41,4 +41,11 @@
     <string name="about_text">This app has no ads. However it will inform you about my new games when it comes out. The games will come out few times a year at max.Thank you for using my app.</string>
     <string name="yi_su_ho_ncau_cse_14">Yi Su Ho\nCAU CSE 14</string>
     <string name="title_activity_app_widget_configure">Select note</string>
+    <string name="backup">Backup</string>
+    <string name="restore">Restore</string>
+    <string name="noTags">No Tags</string>
+    <string name="all">All</string>
+    <string name="editor_hint">What\'s on your mind?</string>
+    <string name="post"> post</string>
+    <string name="posts"> posts</string>
 </resources>

@@ -14,5 +14,5 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/contentTv"
-        android:background="@color/widgetBackground"/>
+        android:background="@color/whiteBackground"/>
 </FrameLayout>

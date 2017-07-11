@@ -1,64 +1,27 @@
 package com.yisuho.simplenote;
 
-import android.app.LoaderManager;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
-import android.appwidget.AppWidgetProvider;
-import android.content.CursorLoader;
 import android.content.Intent;
-import android.content.Loader;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
-import android.support.v7.widget.Toolbar;
+import android.support.v7.widget.SearchView;
+import android.view.Menu;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.CursorAdapter;
-import android.widget.FilterQueryProvider;
 import android.widget.ListView;
 import android.widget.RemoteViews;
 
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
-
-import org.json.JSONObject;
-
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Set;
-
-public class AppWidgetConfigureActivity extends AppCompatActivity
-        implements LoaderManager.LoaderCallbacks<Cursor>{
-
-    private CursorAdapter mCursorAdapter;
+public class AppWidgetConfigureActivity extends MainActivity {
 
     int mAppWidgetId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_app_widget_configure);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-
-        //Init floating action button
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(AppWidgetConfigureActivity.this, EditorActivity.class);
-                startActivityForResult(intent, MainActivity.EDITOR_REQUEST_CODE);
-            }
-        });
 
         setResult(RESULT_CANCELED);
 
@@ -70,26 +33,15 @@ public class AppWidgetConfigureActivity extends AppCompatActivity
                     AppWidgetManager.INVALID_APPWIDGET_ID);
         }
 
-        mCursorAdapter = new NotesCursorAdapter(this, null, 0, false);
-        mCursorAdapter.setFilterQueryProvider(new FilterQueryProvider() {
-            @Override
-            public Cursor runQuery(CharSequence charSequence) {
-                String filter = DBOpenHelper.NOTE_TEXT + " Like \"%" + charSequence +"%\"";
-                return getContentResolver().query(NotesProvider.CONTENT_URI,
-                        DBOpenHelper.ALL_COLUMNS, filter, null, null);
-            }
-        });
-
         final ListView list = (ListView) findViewById(R.id.listView);
-        list.setAdapter(mCursorAdapter);
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Uri uri = Uri.parse(NotesProvider.CONTENT_URI + "/" + l);
+                Uri uri = Uri.parse(NotesProvider.CONTENT_URI_NOTES + "/" + l);
                 String noteFilter = DBOpenHelper.NOTE_ID + "=" + uri.getLastPathSegment();
 
                 Cursor cursor = getContentResolver().query(uri,
-                        DBOpenHelper.ALL_COLUMNS, noteFilter, null, null);
+                        DBOpenHelper.TABLE_NOTES_ALL_COLUMNS, noteFilter, null, null);
 
                 cursor.moveToFirst();
                 String text = cursor.getString(cursor.getColumnIndex(DBOpenHelper.NOTE_TEXT));
@@ -119,39 +71,28 @@ public class AppWidgetConfigureActivity extends AppCompatActivity
                 finish();
             }
         });
-
-        getLoaderManager().initLoader(0, null, this);
     }
 
     @Override
-    protected void onResume() {
-        restartLoader();
-        super.onResume();
-    }
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
 
-    public void restartLoader() {
-        getLoaderManager().restartLoader(0, null, this);
-    }
+        menu.findItem(R.id.action_alarm).setVisible(false);
+        menu.findItem(R.id.action_backup).setVisible(false);
+        menu.findItem(R.id.action_restore).setVisible(false);
+        menu.findItem(R.id.action_news).setVisible(false);
+        menu.findItem(R.id.action_about).setVisible(false);
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if(requestCode == MainActivity.EDITOR_REQUEST_CODE && resultCode == RESULT_OK){
-            restartLoader();
-        }
-    }
+        SearchView searchView = (SearchView) menu.findItem(R.id.action_search).getActionView();
+        searchView.setQueryHint(getString(R.string.search_hint));
+        searchView.setOnQueryTextListener(this);
 
-    @Override
-    public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
-        return new CursorLoader(this, NotesProvider.CONTENT_URI, null, null, null, null);
+        return true;
     }
 
     @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-        mCursorAdapter.swapCursor(cursor);
-    }
-
-    @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-        mCursorAdapter.swapCursor(null);
+    protected boolean getEnableImportant() {
+        return false;
     }
 }

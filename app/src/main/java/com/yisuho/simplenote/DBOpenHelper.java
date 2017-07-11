@@ -20,11 +20,20 @@ public class DBOpenHelper extends SQLiteOpenHelper {
     public static final String NOTE_IMPORTANT = "noteImportant";
     public static final String NOTE_CREATED = "noteCreated";
 
-    public static final String[] ALL_COLUMNS =
+    public static final String[] TABLE_NOTES_ALL_COLUMNS =
             {NOTE_ID, NOTE_TEXT, NOTE_IMPORTANT, NOTE_CREATED};
 
+    public static final String TABLE_TAGS = "tags";
+    public static final String TAGS_TEXT = "tagText";
+    public static final String TAGS_NOTE_ID = "noteId";
+
+    public static final String TAGS_TAG_COUNT = "tagCount";
+
+    public static final String[] TABLE_TAGS_ALL_COLUMNS =
+            {TAGS_TEXT, TAGS_NOTE_ID};
+
     //SQL to create table
-    private static final String TABLE_CREATE =
+    private static final String TABLE_NOTES_CREATE =
             "CREATE TABLE " + TABLE_NOTES + " (" +
                     NOTE_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     NOTE_TEXT + " TEXT, " +
@@ -32,9 +41,18 @@ public class DBOpenHelper extends SQLiteOpenHelper {
                     NOTE_CREATED + " TEXT default CURRENT_TIMESTAMP" +
                     ")";
 
+    private static final String TABLE_TAGS_CREATE =
+            "CREATE TABLE " + TABLE_TAGS + " (" +
+                    TAGS_TEXT + " TEXT, " +
+                    TAGS_NOTE_ID + " INTEGER default 0" +
+                    ")";
+
     //SQL to drop table
-    private static final String TABLE_DROP = "DROP TABLE IF EXISTS " +
+    private static final String TABLE_NOTES_DROP = "DROP TABLE IF EXISTS " +
             TABLE_NOTES;
+
+    private static final String TABLE_TAGS_DROP = "DROP TABLE IF EXISTS " +
+            TABLE_TAGS;
 
     public DBOpenHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -42,12 +60,14 @@ public class DBOpenHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
-        sqLiteDatabase.execSQL(TABLE_CREATE);
+        sqLiteDatabase.execSQL(TABLE_NOTES_CREATE);
+        sqLiteDatabase.execSQL(TABLE_TAGS_CREATE);
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
-        sqLiteDatabase.execSQL(TABLE_DROP);
+        sqLiteDatabase.execSQL(TABLE_NOTES_DROP);
+        sqLiteDatabase.execSQL(TABLE_TAGS_DROP);
         onCreate(sqLiteDatabase);
     }
 }

@@ -48,9 +48,7 @@ public class NotesCursorAdapter extends CursorAdapter {
         TextView tvN = (TextView) view.findViewById(R.id.tvNote);
         tvN.setText(noteText);
 
-        String dateText = cursor.getString(
-                cursor.getColumnIndex(DBOpenHelper.NOTE_CREATED)
-        );
+        String dateText = cursor.getString(cursor.getColumnIndex(DBOpenHelper.NOTE_CREATED));
 
         SimpleDateFormat simpleDateFormat =
                 new SimpleDateFormat("yyyy-MM-dd kk:mm:ss", Locale.getDefault());
@@ -83,7 +81,7 @@ public class NotesCursorAdapter extends CursorAdapter {
                         ContentValues values = new ContentValues();
                         values.put(DBOpenHelper.NOTE_IMPORTANT, (myTag.noteImportant == 1)? 0 : 1);
                         String noteFilter = DBOpenHelper.NOTE_ID + "=" + myTag.getNoteId();
-                        context.getContentResolver().update(NotesProvider.CONTENT_URI, values, noteFilter, null);
+                        context.getContentResolver().update(NotesProvider.CONTENT_URI_NOTES, values, noteFilter, null);
                         ((MainActivity) context).restartLoader();
                     }
                 }

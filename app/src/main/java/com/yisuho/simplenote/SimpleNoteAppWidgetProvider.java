@@ -12,9 +12,6 @@ import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.widget.RemoteViews;
 
-import java.util.HashSet;
-import java.util.Set;
-
 /**
  * Created by YiSuHo on 10/01/2017.
  */
@@ -63,7 +60,7 @@ public class SimpleNoteAppWidgetProvider extends AppWidgetProvider {
                 String noteFilter = DBOpenHelper.NOTE_ID + "=" + uri.getLastPathSegment();
 
                 Cursor cursor = context.getContentResolver().query(uri,
-                        DBOpenHelper.ALL_COLUMNS, noteFilter, null, null);
+                        DBOpenHelper.TABLE_NOTES_ALL_COLUMNS, noteFilter, null, null);
 
                 cursor.moveToFirst();
 

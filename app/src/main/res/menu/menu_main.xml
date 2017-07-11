@@ -16,13 +16,23 @@
         android:title="@string/search"
         app:showAsAction="collapseActionView|always" />
     <item
-        android:id="@+id/action_news"
+        android:id="@+id/action_backup"
         android:orderInCategory="102"
+        android:title="@string/backup"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_restore"
+        android:orderInCategory="103"
+        android:title="@string/restore"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_news"
+        android:orderInCategory="104"
         android:title="@string/news"
         app:showAsAction="never" />
     <item
         android:id="@+id/action_about"
-        android:orderInCategory="103"
+        android:orderInCategory="105"
         android:title="@string/about"
         app:showAsAction="never" />
 </menu>
