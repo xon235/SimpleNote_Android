@@ -41,11 +41,20 @@
     <string name="about_text">This app has no ads. However it will inform you about my new games when it comes out. The games will come out few times a year at max.Thank you for using my app.</string>
     <string name="yi_su_ho_ncau_cse_14">Yi Su Ho\nCAU CSE 14</string>
     <string name="title_activity_app_widget_configure">Select note</string>
-    <string name="backup">Backup</string>
-    <string name="restore">Restore</string>
+    <string name="export">Export</string>
+    <string name="import_option">Import</string>
     <string name="noTags">No Tags</string>
     <string name="all">All</string>
     <string name="editor_hint">What\'s on your mind?</string>
-    <string name="post"> post</string>
-    <string name="posts"> posts</string>
+    <string name="title_activity_export">Export</string>
+    <string name="export_successful">Export successful\nDownloads/SimpleNote.json</string>
+    <string name="export_failed">Export failed</string>
+    <string name="no_permission">No permission</string>
+    <string name="export_file_name">SimpleNote.json</string>
+    <string name="choose_file">Choose file</string>
+    <string name="please_install_a_file_manager">Please install a File Manager.</string>
+    <string name="import_successful">Import successful</string>
+    <string name="import_failed">Import failed</string>
+    <string name="hashtags_pattern">(#.+)</string>
+    <string name="utf_8">UTF-8</string>
 </resources>

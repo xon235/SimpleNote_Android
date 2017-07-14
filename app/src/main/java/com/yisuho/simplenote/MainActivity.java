@@ -1,20 +1,15 @@
 package com.yisuho.simplenote;
 
-import android.Manifest;
 import android.app.LoaderManager;
+import android.content.ContentValues;
 import android.content.CursorLoader;
 import android.content.Intent;
 import android.content.Loader;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Debug;
-import android.os.Environment;
-import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
-import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.SearchView;
@@ -39,19 +34,22 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.nio.channels.FileChannel;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity
         implements LoaderManager.LoaderCallbacks<Cursor>, SearchView.OnQueryTextListener {
 
     public static final int EDITOR_REQUEST_CODE = 100;
+    public static final int CHOOSE_FILE_REQUEST_CODE = 101;
     public static final String KEY_PREF_CURRENT = "pref_current";
 
     private static final String QUERY_TYPE_PLAIN = "plain:";
@@ -66,6 +64,8 @@ public class MainActivity extends AppCompatActivity
 
     private LinearLayout mLinearLayoutTags;
     private ArrayList<Button> mTagButtons;
+
+    private Button mCurrentPressedButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,7 +110,10 @@ public class MainActivity extends AppCompatActivity
         final ListView list = (ListView) findViewById(R.id.listView);
         final View h = getLayoutInflater().inflate(R.layout.note_list_header, null, false);
         mLinearLayoutTags = (LinearLayout) h.findViewById(R.id.lLtags);
-        mLinearLayoutTags.addView(createAllButton(mLinearLayoutTags));
+        mCurrentPressedButton = createAllButton(mLinearLayoutTags);
+        mCurrentPressedButton.setEnabled(false);
+        mCurrentPressedButton.setBackgroundResource(R.drawable.round_button_background_disabled);
+        mLinearLayoutTags.addView(mCurrentPressedButton);
         mLinearLayoutTags.addView(createNoTagsButton(mLinearLayoutTags));
         mTagButtons = new ArrayList<>();
         setHashtagButtons(mLinearLayoutTags, null);
@@ -167,7 +170,7 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    private View createNewTagButton(
+    private Button createNewTagButton(
             final String tagText, final String queryType,final String filterText, ViewGroup viewGroup) {
         Button b = (Button) getLayoutInflater().inflate(R.layout.tag_button, viewGroup, false);
         b.setText(tagText);
@@ -175,16 +178,21 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View v) {
                 mCursorAdapter.getFilter().filter(queryType + filterText);
+                mCurrentPressedButton.setEnabled(true);
+                mCurrentPressedButton.setBackgroundResource(R.drawable.round_button_background);
+                mCurrentPressedButton = (Button) v;
+                mCurrentPressedButton.setEnabled(false);
+                mCurrentPressedButton.setBackgroundResource(R.drawable.round_button_background_disabled);
             }
         });
         return b;
     }
 
-    private View createAllButton(ViewGroup viewGroup) {
+    private Button createAllButton(ViewGroup viewGroup) {
         return createNewTagButton(getString(R.string.all), QUERY_TYPE_ALL, "", viewGroup);
     }
 
-    private View createNoTagsButton(ViewGroup viewGroup) {
+    private Button createNoTagsButton(ViewGroup viewGroup) {
         return createNewTagButton(getString(R.string.noTags), QUERY_TYPE_NO_TAGS, "", viewGroup);
     }
 
@@ -193,12 +201,11 @@ public class MainActivity extends AppCompatActivity
             viewGroup.removeView(b);
         }
         mTagButtons.clear();
-//        Cursor c = getContentResolver().query(NotesProvider.CONTENT_URI_TAGS, null, null, null, null);
         if(c != null){
             int tagsTextIndex = c.getColumnIndex(DBOpenHelper.TAGS_TEXT);
             while(c.moveToNext()){
                 String hashTag = c.getString(tagsTextIndex);
-                Button b = (Button) createNewTagButton(hashTag, QUERY_TYPE_PLAIN, hashTag, viewGroup);
+                Button b = createNewTagButton(hashTag, QUERY_TYPE_PLAIN, hashTag, viewGroup);
                 mTagButtons.add(b);
                 viewGroup.addView(b);
             }
@@ -259,11 +266,11 @@ public class MainActivity extends AppCompatActivity
             case R.id.action_alarm:
                 startActivity(new Intent(this, AlarmSettingsActivity.class));
                 break;
-            case R.id.action_backup:
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 111);
+            case R.id.action_export:
+                startActivity(new Intent(this, ExportActivity.class));
                 break;
-            case R.id.action_restore:
-                restoreNotes();
+            case R.id.action_import:
+                importNotes();
                 break;
             case R.id.action_about:
                 startActivity(new Intent(this, AboutActivity.class));
@@ -294,66 +301,15 @@ public class MainActivity extends AppCompatActivity
         super.onResume();
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        switch (requestCode) {
-            case 111: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    try {
-                        File folder = new File(Environment.getExternalStorageDirectory() +
-                                File.separator + "SimpleNote");
-                        File data = Environment.getDataDirectory();
-
-                        boolean success = true;
-                        if (!folder.exists()) {
-                            success = folder.mkdir();
-                        }
-
-                        if (success) {
-                            File currentDB =
-                                    new File(data, "/data/com.yisuho.simplenote/databases/notes.db");
-                            File backupDB = new File(folder, "SimpleNote.sn");
-
-                            FileChannel src = new FileInputStream(currentDB).getChannel();
-                            FileChannel dst = new FileOutputStream(backupDB).getChannel();
-
-                            dst.transferFrom(src, 0, src.size());
-                            src.close();
-                            dst.close();
-
-                            Toast.makeText(getApplicationContext(),
-                                    "저장 OK", Toast.LENGTH_SHORT).show();
-                        } else {
-                            throw new Exception();
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        Toast.makeText(getApplicationContext(),
-                                "저장 Fail", Toast.LENGTH_SHORT).show();
-                    }
-                } else {
-                    Toast.makeText(getApplicationContext(),
-                            "권한 없음", Toast.LENGTH_SHORT).show();
-                }
-                return;
-            }
-
-            // other 'case' lines to check for other
-            // permissions this app might request
-        }
-    }
-
-    private void restoreNotes() {
+    private void importNotes() {
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("*/*");
 
         try {
-            startActivityForResult(Intent.createChooser(intent, "Select a File to Upload"), 100);
+            startActivityForResult(Intent.createChooser(intent, getString(R.string.choose_file)), CHOOSE_FILE_REQUEST_CODE);
         } catch (android.content.ActivityNotFoundException ex) {
             // Potentially direct the user to the Market with a Dialog
-            Toast.makeText(this, "Please install a File Manager.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.please_install_a_file_manager, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -401,6 +357,121 @@ public class MainActivity extends AppCompatActivity
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == EDITOR_REQUEST_CODE && resultCode == RESULT_OK) {
             restartLoader();
+        } else if (requestCode == CHOOSE_FILE_REQUEST_CODE && resultCode == RESULT_OK) {
+            try {
+                Uri uri = data.getData();
+                InputStream is = getContentResolver().openInputStream(uri);
+                int size = is.available();
+                byte[] buffer = new byte[size];
+                is.read(buffer);
+                is.close();
+                String jsonString = new String(buffer, getString(R.string.utf_8));
+                JSONObject json = new JSONObject(jsonString);
+                JSONArray notes = json.getJSONArray(ExportActivity.JSON_NOTES);
+
+                ArrayList<ImportedNote> importedNotes = new ArrayList<>();
+
+                for(int i = 0; i < notes.length(); i++){
+                    JSONObject note = notes.getJSONObject(i);
+                    String created = note.getString(ExportActivity.JSON_CREATED);
+                    int important = note.getInt(ExportActivity.JSON_IMPORTANT) > 0? 1: 0;
+                    String text = note.getString(ExportActivity.JSON_TEXT);
+                    JSONArray hashtags = note.getJSONArray(ExportActivity.JSON_HASHTAGS);
+                    ArrayList<String> hashtagsArray = new ArrayList<>();
+                    Pattern p = Pattern.compile(getString(R.string.hashtags_pattern));
+                    for(int j = 0; j < hashtags.length(); j++){
+                        String h = hashtags.getString(j);
+                        Matcher m = p.matcher(text);
+
+                        if(m.matches()){
+                            hashtagsArray.add(h);
+                        } else {
+                            Log.d("MainActivity", "Hashtag format wrong");
+                            throw new Exception();
+                        }
+                    }
+
+                    importedNotes.add(new ImportedNote(created, important, text, hashtagsArray));
+                }
+
+                for(ImportedNote iN: importedNotes){
+                    ContentValues values = new ContentValues();
+                    values.put(DBOpenHelper.NOTE_CREATED, iN.getCreated());
+                    values.put(DBOpenHelper.NOTE_TEXT, iN.getText());
+                    values.put(DBOpenHelper.NOTE_IMPORTANT, iN.getImportant());
+                    String nId = getContentResolver().insert(NotesProvider.CONTENT_URI_NOTES, values).getLastPathSegment();
+                    for(String h: iN.getHashtags()){
+                        values = new ContentValues();
+                        values.put(DBOpenHelper.TAGS_NOTE_ID, nId);
+                        values.put(DBOpenHelper.TAGS_TEXT, h);
+                        getContentResolver().insert(NotesProvider.CONTENT_URI_TAGS, values);
+                    }
+                }
+//                BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+//                int itemCount = Integer.valueOf(reader.readLine());
+//                ArrayList<ImportedNote> importedNotes = new ArrayList<>();
+//                for(int i = 0; i < itemCount; i++){
+//                    String created = reader.readLine();
+//                    int important = Integer.valueOf(reader.readLine());
+//                    int lineCount = Integer.valueOf(reader.readLine());
+//                    String text = "";
+//                    for(int j = 0; j < lineCount; j++){
+//                        String s = reader.readLine();
+//                        if(s.equals("")){
+//                            text += "\n";
+//                        } else {
+//                            text += s;
+//                        }
+//                    }
+//                    importedNotes.add(new ImportedNote(created, important, text));
+//                }
+//
+//                for(ImportedNote iN: importedNotes){
+//                    ContentValues values = new ContentValues();
+//                    values.put(DBOpenHelper.NOTE_CREATED, iN.getCreated());
+//                    values.put(DBOpenHelper.NOTE_TEXT, iN.getText());
+//                    values.put(DBOpenHelper.NOTE_IMPORTANT, iN.getImportant());
+//                    getContentResolver().insert(NotesProvider.CONTENT_URI_NOTES, values);
+//                }
+
+                Toast.makeText(getApplicationContext(),
+                        R.string.import_successful, Toast.LENGTH_SHORT).show();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                Toast.makeText(getApplicationContext(),
+                        R.string.import_failed, Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private class ImportedNote{
+        private String created;
+        private int important;
+        private String text;
+        private ArrayList<String> hashtags;
+
+        public ImportedNote(String c, int i, String t, ArrayList<String> h){
+            created = c;
+            important = i;
+            text = t;
+            hashtags = h;
+        }
+
+        public String getCreated() {
+            return created;
+        }
+
+        public int getImportant() {
+            return important;
+        }
+
+        public String getText() {
+            return text;
+        }
+
+        public ArrayList<String> getHashtags() {
+            return hashtags;
         }
     }
 }

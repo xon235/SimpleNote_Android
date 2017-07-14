@@ -16,14 +16,14 @@
         android:title="@string/search"
         app:showAsAction="collapseActionView|always" />
     <item
-        android:id="@+id/action_backup"
+        android:id="@+id/action_export"
         android:orderInCategory="102"
-        android:title="@string/backup"
+        android:title="@string/export"
         app:showAsAction="never" />
     <item
-        android:id="@+id/action_restore"
+        android:id="@+id/action_import"
         android:orderInCategory="103"
-        android:title="@string/restore"
+        android:title="@string/import_option"
         app:showAsAction="never" />
     <item
         android:id="@+id/action_news"

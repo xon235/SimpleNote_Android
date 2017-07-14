@@ -79,8 +79,8 @@ public class AppWidgetConfigureActivity extends MainActivity {
         getMenuInflater().inflate(R.menu.menu_main, menu);
 
         menu.findItem(R.id.action_alarm).setVisible(false);
-        menu.findItem(R.id.action_backup).setVisible(false);
-        menu.findItem(R.id.action_restore).setVisible(false);
+        menu.findItem(R.id.action_export).setVisible(false);
+        menu.findItem(R.id.action_import).setVisible(false);
         menu.findItem(R.id.action_news).setVisible(false);
         menu.findItem(R.id.action_about).setVisible(false);
 

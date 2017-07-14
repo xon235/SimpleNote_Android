@@ -24,8 +24,8 @@
         android:text="@string/Important"
         android:textSize="16sp" />
 
-    <com.hendraanggrian.widget.SocialEditText
-        android:id="@+id/socialTextView"
+    <EditText
+        android:id="@+id/editText"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@id/checkBox"

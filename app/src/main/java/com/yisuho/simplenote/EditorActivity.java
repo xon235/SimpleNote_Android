@@ -12,17 +12,11 @@ import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.Toast;
-
-import com.hendraanggrian.socialview.commons.Hashtag;
-import com.hendraanggrian.socialview.commons.HashtagAdapter;
-import com.hendraanggrian.widget.SocialAutoCompleteTextView;
-import com.hendraanggrian.widget.SocialEditText;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -32,7 +26,7 @@ public class EditorActivity extends AppCompatActivity {
     public static final String EXTRA_NOTE_DELETED = "NOTE DELETED";
 
     private String mAction;
-    private SocialEditText mSocialAutoCompleteTextView;
+    private EditText mEditText;
     private CheckBox mCheckBox;
     private String mNoteFilter;
     private String mOldText;
@@ -49,25 +43,7 @@ public class EditorActivity extends AppCompatActivity {
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        mSocialAutoCompleteTextView = (SocialEditText) findViewById(R.id.socialTextView);
-        mSocialAutoCompleteTextView.setMentionEnabled(false);
-        mSocialAutoCompleteTextView.setHyperlinkEnabled(false);
-
-        //AUTO COMPLETE FEATURE COULD BE ADDED IN THE FUTRE
-//        ArrayAdapter<Hashtag> hashtagAdapter = new MyHashtagAdapter(this);
-//        Cursor c = getContentResolver().query(NotesProvider.CONTENT_URI_TAGS, null, null, null, null);
-//        if(c != null){
-//            int textIndex = c.getColumnIndex(DBOpenHelper.TAGS_TEXT);
-//            int tagCountIndex = c.getColumnIndex(DBOpenHelper.TAGS_TAG_COUNT);
-//            while(c.moveToNext()){
-//                String hashTag = c.getString(textIndex).replaceFirst("\\#", "");
-//                int tagCount = c.getInt(tagCountIndex);
-//                hashtagAdapter.add(new Hashtag(hashTag, tagCount));
-//            }
-//        }
-//        c.close();
-//
-//        mSocialAutoCompleteTextView.setHashtagAdapter(hashtagAdapter);
+        mEditText = (EditText) findViewById(R.id.editText);
 
         mCheckBox = (CheckBox) findViewById(R.id.checkBox);
 
@@ -87,7 +63,7 @@ public class EditorActivity extends AppCompatActivity {
             try{
                 cursor.moveToFirst();
                 mOldText = cursor.getString(cursor.getColumnIndex(DBOpenHelper.NOTE_TEXT));
-                mSocialAutoCompleteTextView.setText(mOldText);
+                mEditText.setText(mOldText);
 
                 mOldIsChecked = (cursor.getInt(cursor.getColumnIndex(DBOpenHelper.NOTE_IMPORTANT)) == 1);
                 mCheckBox.setChecked(mOldIsChecked);
@@ -126,7 +102,7 @@ public class EditorActivity extends AppCompatActivity {
     }
 
     private void finishEditing(){
-        String newText = mSocialAutoCompleteTextView.getText().toString().trim();
+        String newText = mEditText.getText().toString().trim();
         boolean isChecked = mCheckBox.isChecked();
 
         switch (mAction) {
@@ -194,7 +170,7 @@ public class EditorActivity extends AppCompatActivity {
         //First delet all hashtags for this note
         deleteAllHashTags(noteId);
         //Add all hashtags from this note
-        Pattern p = Pattern.compile("(#\\w+)");
+        Pattern p = Pattern.compile(getString(R.string.hashtags_pattern));
         Matcher m = p.matcher(newText);
         while (m.find()) {
             String h = m.group(1);
