@@ -9,7 +9,6 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -18,10 +17,10 @@ import java.util.Calendar;
 
 public class AlarmSettingsActivity extends AppCompatActivity {
 
-    private SharedPreferences sharedPref;
-    private boolean lastSetAlarm;
-    private String lastSetTime;
-    private int lastSetRepeat;
+    private SharedPreferences mSharedPref;
+    private boolean mLastSetAlarm;
+    private String mLastSetTime;
+    private int mLastSetRepeat;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,10 +37,10 @@ public class AlarmSettingsActivity extends AppCompatActivity {
                 .replace(R.id.pref_content, new AlarmSettingsFragment())
                 .commit();
 
-        sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-        lastSetAlarm = sharedPref.getBoolean(AlarmSettingsFragment.KEY_PREF_SET_ALARM, false);
-        lastSetTime = sharedPref.getString(AlarmSettingsFragment.KEY_PREF_SET_TIME, "00:00");
-        lastSetRepeat = sharedPref.getInt(AlarmSettingsFragment.KEY_PREF_SET_REPEAT, 1);
+        mSharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        mLastSetAlarm = mSharedPref.getBoolean(AlarmSettingsFragment.KEY_PREF_SET_ALARM, false);
+        mLastSetTime = mSharedPref.getString(AlarmSettingsFragment.KEY_PREF_SET_TIME, "00:00");
+        mLastSetRepeat = mSharedPref.getInt(AlarmSettingsFragment.KEY_PREF_SET_REPEAT, 1);
     }
 
     @Override
@@ -75,10 +74,10 @@ public class AlarmSettingsActivity extends AppCompatActivity {
     }
 
     private void resetPreference(){
-        SharedPreferences.Editor editor = sharedPref.edit();
-        editor.putBoolean(AlarmSettingsFragment.KEY_PREF_SET_ALARM, lastSetAlarm);
-        editor.putString(AlarmSettingsFragment.KEY_PREF_SET_TIME, lastSetTime);
-        editor.putInt(AlarmSettingsFragment.KEY_PREF_SET_REPEAT, lastSetRepeat);
+        SharedPreferences.Editor editor = mSharedPref.edit();
+        editor.putBoolean(AlarmSettingsFragment.KEY_PREF_SET_ALARM, mLastSetAlarm);
+        editor.putString(AlarmSettingsFragment.KEY_PREF_SET_TIME, mLastSetTime);
+        editor.putInt(AlarmSettingsFragment.KEY_PREF_SET_REPEAT, mLastSetRepeat);
         editor.apply();
     }
 
@@ -91,9 +90,9 @@ public class AlarmSettingsActivity extends AppCompatActivity {
         pendingIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
         alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 
-        if(sharedPref.getBoolean(AlarmSettingsFragment.KEY_PREF_SET_ALARM, false)){
-            String time = sharedPref.getString(AlarmSettingsFragment.KEY_PREF_SET_TIME, "00:00");
-            int repeat = sharedPref.getInt(AlarmSettingsFragment.KEY_PREF_SET_REPEAT, 1);
+        if(mSharedPref.getBoolean(AlarmSettingsFragment.KEY_PREF_SET_ALARM, false)){
+            String time = mSharedPref.getString(AlarmSettingsFragment.KEY_PREF_SET_TIME, "00:00");
+            int repeat = mSharedPref.getInt(AlarmSettingsFragment.KEY_PREF_SET_REPEAT, 1);
 
 
             int hour = TimePreference.getHour(time);

@@ -38,9 +38,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -51,6 +49,7 @@ public class MainActivity extends AppCompatActivity
     public static final int EDITOR_REQUEST_CODE = 100;
     public static final int CHOOSE_FILE_REQUEST_CODE = 101;
     public static final String KEY_PREF_CURRENT = "pref_current";
+    public static final String KEY_PREF_SHOW_HELP = "pref_show_help";
 
     private static final String QUERY_TYPE_PLAIN = "plain:";
     private static final String QUERY_TYPE_ALL = "all:";
@@ -138,8 +137,14 @@ public class MainActivity extends AppCompatActivity
         if (mSharedPref.getInt(KEY_PREF_CURRENT, -1) < 0) {
             SharedPreferences.Editor editor = mSharedPref.edit();
             editor.putInt(KEY_PREF_CURRENT, 0);
+            editor.putBoolean(KEY_PREF_SHOW_HELP, false);
             editor.apply();
             startActivity(new Intent(this, AboutActivity.class));
+        } else if (mSharedPref.getBoolean(KEY_PREF_SHOW_HELP, true)) {
+            SharedPreferences.Editor editor = mSharedPref.edit();
+            editor.putBoolean(KEY_PREF_SHOW_HELP, false);
+            editor.apply();
+            startActivity(new Intent(this, HelpActivity.class));
         } else {
             //Volley
             RequestQueue queue = Volley.newRequestQueue(this);
@@ -179,7 +184,7 @@ public class MainActivity extends AppCompatActivity
             public void onClick(View v) {
                 mCursorAdapter.getFilter().filter(queryType + filterText);
                 mCurrentPressedButton.setEnabled(true);
-                mCurrentPressedButton.setBackgroundResource(R.drawable.round_button_background);
+                mCurrentPressedButton.setBackgroundResource(R.drawable.round_button_background_enabled);
                 mCurrentPressedButton = (Button) v;
                 mCurrentPressedButton.setEnabled(false);
                 mCurrentPressedButton.setBackgroundResource(R.drawable.round_button_background_disabled);
@@ -272,6 +277,9 @@ public class MainActivity extends AppCompatActivity
             case R.id.action_import:
                 importNotes();
                 break;
+            case R.id.action_help:
+                startActivity(new Intent(this, HelpActivity.class));
+                break;
             case R.id.action_about:
                 startActivity(new Intent(this, AboutActivity.class));
                 break;
@@ -309,7 +317,7 @@ public class MainActivity extends AppCompatActivity
             startActivityForResult(Intent.createChooser(intent, getString(R.string.choose_file)), CHOOSE_FILE_REQUEST_CODE);
         } catch (android.content.ActivityNotFoundException ex) {
             // Potentially direct the user to the Market with a Dialog
-            Toast.makeText(this, R.string.please_install_a_file_manager, Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, R.string.please_install_a_file_browser, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -407,32 +415,6 @@ public class MainActivity extends AppCompatActivity
                         getContentResolver().insert(NotesProvider.CONTENT_URI_TAGS, values);
                     }
                 }
-//                BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
-//                int itemCount = Integer.valueOf(reader.readLine());
-//                ArrayList<ImportedNote> importedNotes = new ArrayList<>();
-//                for(int i = 0; i < itemCount; i++){
-//                    String created = reader.readLine();
-//                    int important = Integer.valueOf(reader.readLine());
-//                    int lineCount = Integer.valueOf(reader.readLine());
-//                    String text = "";
-//                    for(int j = 0; j < lineCount; j++){
-//                        String s = reader.readLine();
-//                        if(s.equals("")){
-//                            text += "\n";
-//                        } else {
-//                            text += s;
-//                        }
-//                    }
-//                    importedNotes.add(new ImportedNote(created, important, text));
-//                }
-//
-//                for(ImportedNote iN: importedNotes){
-//                    ContentValues values = new ContentValues();
-//                    values.put(DBOpenHelper.NOTE_CREATED, iN.getCreated());
-//                    values.put(DBOpenHelper.NOTE_TEXT, iN.getText());
-//                    values.put(DBOpenHelper.NOTE_IMPORTANT, iN.getImportant());
-//                    getContentResolver().insert(NotesProvider.CONTENT_URI_NOTES, values);
-//                }
 
                 Toast.makeText(getApplicationContext(),
                         R.string.import_successful, Toast.LENGTH_SHORT).show();

@@ -3,6 +3,7 @@ package com.yisuho.simplenote;
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
 /**
  * Created by xon23 on 2016-07-04.
@@ -11,7 +12,7 @@ public class DBOpenHelper extends SQLiteOpenHelper {
 
     //Constants for db name and version
     private static final String DATABASE_NAME = "notes.db";
-    private static final int DATABASE_VERSION = 4;
+    private static final int DATABASE_VERSION = 5;
 
     //Constants for identifying table and columns
     public static final String TABLE_NOTES = "notes";
@@ -34,7 +35,7 @@ public class DBOpenHelper extends SQLiteOpenHelper {
 
     //SQL to create table
     private static final String TABLE_NOTES_CREATE =
-            "CREATE TABLE " + TABLE_NOTES + " (" +
+            "CREATE TABLE IF NOT EXISTS " + TABLE_NOTES + " (" +
                     NOTE_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     NOTE_TEXT + " TEXT, " +
                     NOTE_IMPORTANT + " INTEGER default 0, " +
@@ -42,7 +43,7 @@ public class DBOpenHelper extends SQLiteOpenHelper {
                     ")";
 
     private static final String TABLE_TAGS_CREATE =
-            "CREATE TABLE " + TABLE_TAGS + " (" +
+            "CREATE TABLE IF NOT EXISTS " + TABLE_TAGS + " (" +
                     TAGS_TEXT + " TEXT, " +
                     TAGS_NOTE_ID + " INTEGER default 0" +
                     ")";
@@ -60,14 +61,16 @@ public class DBOpenHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase sqLiteDatabase) {
+        Log.d("DBOpenHelper", "onCreate");
         sqLiteDatabase.execSQL(TABLE_NOTES_CREATE);
         sqLiteDatabase.execSQL(TABLE_TAGS_CREATE);
     }
 
     @Override
-    public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
-        sqLiteDatabase.execSQL(TABLE_NOTES_DROP);
-        sqLiteDatabase.execSQL(TABLE_TAGS_DROP);
-        onCreate(sqLiteDatabase);
+    public void onUpgrade(SQLiteDatabase sqLiteDatabase, int oldVersion, int newVersion) {
+        Log.d("DBOpenHelper", "onUpgrade: " + oldVersion);
+        if(oldVersion < 5){
+            sqLiteDatabase.execSQL(TABLE_TAGS_CREATE);
+        }
     }
 }

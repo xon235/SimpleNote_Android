@@ -2,7 +2,7 @@
     <string name="app_name">Simple Note</string>
     <string name="title_activity_note">Note Activity</string>
     <string name="set_alarm">알람 설정</string>
-    <string name="about">도움말</string>
+    <string name="about">정보</string>
     <string name="are_you_sure">노트를 삭제하시겠습니까?</string>
     <string name="new_note">새 노트</string>
     <string name="note_updated">노트가 갱신되었습니다</string>
@@ -29,7 +29,7 @@
     <string name="notification_text">노트를 확인하십시요</string>
     <string name="search">검색</string>
     <string name="search_hint">노트 검색</string>
-    <string name="title_activity_about">도움말</string>
+    <string name="title_activity_about">정보</string>
     <string name="news">새소식</string>
     <string name="title_activity_news">새소식</string>
     <string name="my_news_url">http://52.78.125.129:3000</string>
@@ -41,4 +41,31 @@
     <string name="about_text">이 앱은 광고가 없습니다. 하지만 1년에 몇 번 저의 새로운 게임이 나올 때 마다 새소식 창을 열어 알려드립니다. 제 앱을 이용해주셔서 감사합니다.</string>
     <string name="yi_su_ho_ncau_cse_14">Yi Su Ho\nCAU CSE 14</string>
     <string name="title_activity_app_widget_configure">노트 선택</string>
+    <string name="export">내보내기</string>
+    <string name="import_option">불러오기</string>
+    <string name="noTags">테그 없음</string>
+    <string name="all">전체</string>
+    <string name="editor_hint">무슨 생각을 하고 있나요?</string>
+    <string name="title_activity_export">내보내기</string>
+    <string name="export_successful">불러오기 성공\nDownloads/SimpleNote.json</string>
+    <string name="export_failed">불러오기 실패</string>
+    <string name="no_permission">권한 없음</string>
+    <string name="export_file_name">SimpleNote.json</string>
+    <string name="choose_file">파일 선택</string>
+    <string name="please_install_a_file_browser">파일 브라우저를 설치해 주세요</string>
+    <string name="import_successful">불러오기 성공</string>
+    <string name="import_failed">불러오기 실패</string>
+    <string name="hashtags_pattern">(#.+)</string>
+    <string name="utf_8">UTF-8</string>
+    <string name="downloads_directory_not_found">다운로드 디렉토리를 찾지 못했습니다</string>
+    <string name="help">도움말</string>
+    <string name="title_activity_help">도움말</string>
+    <string name="export_instruction">노트들은 JSON 파일(SimpleNote.json)을 통해 다운로드 디렉토리로 내보내어집니다. 이파일을 이용해 나중에 노트들을 복구할 수 있습니다. 파일을 불러오기 위해서는 파일 브라우저가 필요합니다.\n\nJSON 파일은 단순히 형식이 지정된 텍스트 파일입니다. 따라서 필요한 경우 파일을 텍스트 리더로 열어 내용을 복사할 수 있습니다. 그러나 내용을 변경할시 파일이 손상되어 나중에 불러오기를 실패 할 수 있습니다. 그러니 주의 부탁드립니다.</string>
+    <string name="help_add_hashtag">단순히 #만 추가하면 돼요</string>
+    <string name="help_export_import"><![CDATA[내보내기 & 불러오기]]></string>
+    <string name="help_you_can_now_also_export_import">이제 노트들을 내보내고 불러올 수 있어요!</string>
+    <string name="help_using_simple_json">간단한 JSON 형태로요</string>
+    <string name="help_tags">테그</string>
+    <string name="help_you_can_now_organize_your_notes_using_tags">이제 테그를 사용해 노트들을 정리할 수 있어요!</string>
+
 </resources>

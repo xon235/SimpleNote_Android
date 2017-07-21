@@ -5,7 +5,7 @@
     android:layout_marginBottom="4dp"
     android:layout_marginRight="8dp"
     android:layout_marginTop="4dp"
-    android:background="@drawable/round_button_background"
+    android:background="@drawable/round_button_background_enabled"
     android:minHeight="32dp"
     android:minWidth="32dp"
     android:textAllCaps="false"

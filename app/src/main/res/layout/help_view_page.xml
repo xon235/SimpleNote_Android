@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorPrimary"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_alignParentTop="true"
+        android:id="@+id/headerTv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/help_tags"
+        android:textColor="@color/textWhite"
+        android:textSize="28sp"
+        android:textStyle="bold"/>
+
+    <TextView
+        android:id="@+id/subTextTv"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:text="@string/help_you_can_now_organize_your_notes_using_tags"
+        android:textSize="16sp"
+        android:textColor="@color/textWhite"
+        android:textAlignment="center"
+        android:textStyle="bold" />
+
+    <ImageView
+        android:layout_above="@id/subTextTv"
+        android:layout_below="@id/headerTv"
+        android:id="@+id/backgroundIv"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:adjustViewBounds="true"
+        android:src="@drawable/help_tags_button"
+        android:padding="16dp"/>
+
+</RelativeLayout>

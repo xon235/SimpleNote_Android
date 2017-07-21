@@ -16,23 +16,28 @@
         android:title="@string/search"
         app:showAsAction="collapseActionView|always" />
     <item
-        android:id="@+id/action_export"
+        android:id="@+id/action_help"
         android:orderInCategory="102"
+        android:title="@string/help"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_export"
+        android:orderInCategory="103"
         android:title="@string/export"
         app:showAsAction="never" />
     <item
         android:id="@+id/action_import"
-        android:orderInCategory="103"
+        android:orderInCategory="104"
         android:title="@string/import_option"
         app:showAsAction="never" />
     <item
         android:id="@+id/action_news"
-        android:orderInCategory="104"
+        android:orderInCategory="105"
         android:title="@string/news"
         app:showAsAction="never" />
     <item
         android:id="@+id/action_about"
-        android:orderInCategory="105"
+        android:orderInCategory="106"
         android:title="@string/about"
         app:showAsAction="never" />
 </menu>

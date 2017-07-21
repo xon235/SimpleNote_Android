@@ -20,6 +20,7 @@ import org.json.JSONObject;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.OutputStreamWriter;
@@ -62,10 +63,12 @@ public class ExportActivity extends AppCompatActivity {
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     try {
+//                        File downloads = getFilesDir();
                         File downloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                        Log.d("ExportActivity", downloads.getAbsolutePath());
+
                         if (downloads.exists()) {
                             File f = new File(downloads, getString(R.string.export_file_name));
-//                            FileWriter w = new FileWriter(f, getString(R.string.utf_8));
                             OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(f), getString(R.string.utf_8));
 
                             Cursor c = getContentResolver().query(NotesProvider.CONTENT_URI_NOTES, null, null, null, null);
@@ -94,14 +97,21 @@ public class ExportActivity extends AppCompatActivity {
                                 w.append(obj.toString());
                                 w.flush();
                                 w.close();
+                            } else {
+                                throw new Exception();
                             }
 
                             Toast.makeText(getApplicationContext(),
                                     R.string.export_successful, Toast.LENGTH_SHORT).show();
                         } else {
-                            throw new Exception();
+                            throw new FileNotFoundException();
                         }
-                    } catch (Exception e) {
+                    } catch (FileNotFoundException e){
+                        e.printStackTrace();
+                        Toast.makeText(getApplicationContext(),
+                                R.string.downloads_directory_not_found, Toast.LENGTH_SHORT).show();
+                    }
+                    catch (Exception e) {
                         e.printStackTrace();
                         Toast.makeText(getApplicationContext(),
                                 R.string.export_failed, Toast.LENGTH_SHORT).show();
