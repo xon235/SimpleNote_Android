@@ -47,7 +47,7 @@
     <string name="all">전체</string>
     <string name="editor_hint">무슨 생각을 하고 있나요?</string>
     <string name="title_activity_export">내보내기</string>
-    <string name="export_successful">불러오기 성공\nDownloads/SimpleNote.json</string>
+    <string name="export_successful">내보내기 성공\nDownloads/SimpleNote.json</string>
     <string name="export_failed">불러오기 실패</string>
     <string name="no_permission">권한 없음</string>
     <string name="export_file_name">SimpleNote.json</string>
