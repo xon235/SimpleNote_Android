@@ -1,7 +1,6 @@
 package com.yisuho.simplenote;
 
 import android.Manifest;
-import android.content.ContentValues;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.Bundle;
@@ -18,16 +17,10 @@ import android.widget.Toast;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.OutputStreamWriter;
-import java.security.PublicKey;
-import java.util.ArrayList;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class ExportActivity extends AppCompatActivity {
 
@@ -62,13 +55,17 @@ public class ExportActivity extends AppCompatActivity {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Log.d("MainActivity", Environment.getExternalStorageState());
                     try {
-//                        File downloads = getFilesDir();
-                        File downloads = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-                        Log.d("ExportActivity", downloads.getAbsolutePath());
+                        File simpleNoteDir = new File(Environment.getExternalStorageDirectory() +
+                                File.separator + getString(R.string.export_dir_name));
 
-                        if (downloads.exists()) {
-                            File f = new File(downloads, getString(R.string.export_file_name));
+                        if(!simpleNoteDir.exists()){
+                            simpleNoteDir.mkdir();
+                        }
+
+                        if (simpleNoteDir.exists()) {
+                            File f = new File(simpleNoteDir, getString(R.string.export_file_name));
                             OutputStreamWriter w = new OutputStreamWriter(new FileOutputStream(f), getString(R.string.utf_8));
 
                             Cursor c = getContentResolver().query(NotesProvider.CONTENT_URI_NOTES, null, null, null, null);
@@ -78,18 +75,10 @@ public class ExportActivity extends AppCompatActivity {
                                     String created = c.getString(c.getColumnIndex(DBOpenHelper.NOTE_CREATED));
                                     int important = c.getInt(c.getColumnIndex(DBOpenHelper.NOTE_IMPORTANT));
                                     String text = c.getString(c.getColumnIndex(DBOpenHelper.NOTE_TEXT));
-                                    JSONArray hashtags = new JSONArray();
-                                    Pattern p = Pattern.compile(getString(R.string.hashtags_pattern));
-                                    Matcher m = p.matcher(text);
-                                    while (m.find()) {
-                                        String h = m.group(1);
-                                        hashtags.put(h);
-                                    }
                                     JSONObject item = new JSONObject();
                                     item.put(JSON_CREATED, created);
                                     item.put(JSON_IMPORTANT, important);
                                     item.put(JSON_TEXT, text);
-                                    item.put(JSON_HASHTAGS, hashtags);
                                     notes.put(item);
                                 }
                                 JSONObject obj = new JSONObject();
@@ -109,7 +98,7 @@ public class ExportActivity extends AppCompatActivity {
                     } catch (FileNotFoundException e){
                         e.printStackTrace();
                         Toast.makeText(getApplicationContext(),
-                                R.string.downloads_directory_not_found, Toast.LENGTH_SHORT).show();
+                                R.string.failed_to_create_directory, Toast.LENGTH_SHORT).show();
                     }
                     catch (Exception e) {
                         e.printStackTrace();

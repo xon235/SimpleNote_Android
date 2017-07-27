@@ -8,8 +8,8 @@ android {
         applicationId "com.yisuho.simplenote"
         minSdkVersion 15
         targetSdkVersion 24
-        versionCode 11
-        versionName "2.0"
+        versionCode 12
+        versionName "2.0a"
     }
     buildTypes {
         release {

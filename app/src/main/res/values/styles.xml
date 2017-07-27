@@ -22,5 +22,4 @@
         <item name="colorControlHighlight">@color/colorPrimaryDark</item>
         <item name="colorButtonNormal">@color/colorPrimary</item>
     </style>
-
 </resources>

@@ -91,7 +91,7 @@ public class EditorActivity extends AppCompatActivity {
 
         switch (id){
             case android.R.id.home:
-                finishEditing();
+                finishEditing(true);
                 break;
             case R.id.action_delete:
                 deleteNote();
@@ -101,35 +101,52 @@ public class EditorActivity extends AppCompatActivity {
         return true;
     }
 
-    private void finishEditing(){
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if(!isFinishing()){
+            finishEditing(false);
+        }
+    }
+
+    private void finishEditing(boolean doFinish){
         String newText = mEditText.getText().toString().trim();
         boolean isChecked = mCheckBox.isChecked();
 
         switch (mAction) {
             case Intent.ACTION_INSERT:
                 if(newText.length() == 0){
-                    cancelNote();
+                    cancelNote(doFinish);
                 } else {
                     Uri uri = insertNote(newText, isChecked);
                     updateHashtags(newText, Integer.parseInt(uri.getLastPathSegment()));
-                    setResult(RESULT_OK);
-                    finish();
+                    if(doFinish){
+                        setResult(RESULT_OK);
+                        finish();
+                    } else {
+                        mUri = uri;
+                        mAction = Intent.ACTION_EDIT;
+                        mOldText = newText;
+                        mOldIsChecked = isChecked;
+                    }
                 }
                 break;
             case Intent.ACTION_EDIT:
                 if(newText.length() == 0){
                     deleteNote();
                 } else if(mOldText.equals(newText) && isChecked == mOldIsChecked){
-                    cancelNote();
+                    cancelNote(doFinish);
                 } else {
                     updateNote(newText, isChecked);
                     updateHashtags(newText, Integer.parseInt(mUri.getLastPathSegment()));
-                    setResult(RESULT_OK);
-                    finish();
+                    if(doFinish){
+                        setResult(RESULT_OK);
+                        finish();
+                    }
                 }
                 break;
             default:
-                cancelNote();
+                cancelNote(doFinish);
         }
     }
 
@@ -188,9 +205,11 @@ public class EditorActivity extends AppCompatActivity {
         getContentResolver().delete(NotesProvider.CONTENT_URI_TAGS, s, null);
     }
 
-    private void cancelNote() {
-        setResult(RESULT_CANCELED);
-        finish();
+    private void cancelNote(boolean doFinish) {
+        if(doFinish){
+            setResult(RESULT_CANCELED);
+            finish();
+        }
     }
 
     private void updateNote(String noteText, boolean isChecked) {
@@ -226,6 +245,6 @@ public class EditorActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        finishEditing();
+        finishEditing(true);
     }
 }

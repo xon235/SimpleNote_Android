@@ -9,16 +9,20 @@ import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.preference.PreferenceManager;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.ActionMode;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CursorAdapter;
@@ -38,6 +42,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
@@ -310,14 +316,65 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void importNotes() {
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("*/*");
-
         try {
-            startActivityForResult(Intent.createChooser(intent, getString(R.string.choose_file)), CHOOSE_FILE_REQUEST_CODE);
-        } catch (android.content.ActivityNotFoundException ex) {
-            // Potentially direct the user to the Market with a Dialog
-            Toast.makeText(this, R.string.please_install_a_file_browser, Toast.LENGTH_SHORT).show();
+            Uri uri = Uri.fromFile(new File(Environment.getExternalStorageDirectory() +
+                    File.separator + getString(R.string.export_dir_name) +
+                    File.separator + getString(R.string.export_file_name)));
+            InputStream is = getContentResolver().openInputStream(uri);
+            int size = is.available();
+            byte[] buffer = new byte[size];
+            is.read(buffer);
+            is.close();
+            String jsonString = new String(buffer, getString(R.string.utf_8));
+            JSONObject json = new JSONObject(jsonString);
+            JSONArray notes = json.getJSONArray(ExportActivity.JSON_NOTES);
+
+            ArrayList<ImportedNote> importedNotes = new ArrayList<>();
+
+            for(int i = 0; i < notes.length(); i++){
+                JSONObject note = notes.getJSONObject(i);
+                String created = note.getString(ExportActivity.JSON_CREATED);
+                int important = note.getInt(ExportActivity.JSON_IMPORTANT) > 0? 1: 0;
+                String text = note.getString(ExportActivity.JSON_TEXT);
+
+                ArrayList<String> hashtags = new ArrayList<>();
+                Pattern p = Pattern.compile(getString(R.string.hashtags_pattern));
+                Matcher m = p.matcher(text);
+                while (m.find()) {
+                    String h = m.group(1);
+                    hashtags.add(h);
+                }
+
+                importedNotes.add(new ImportedNote(created, important, text, hashtags));
+            }
+
+            for(ImportedNote iN: importedNotes){
+                ContentValues values = new ContentValues();
+                values.put(DBOpenHelper.NOTE_CREATED, iN.getCreated());
+                values.put(DBOpenHelper.NOTE_TEXT, iN.getText());
+                values.put(DBOpenHelper.NOTE_IMPORTANT, iN.getImportant());
+                String nId = getContentResolver().insert(NotesProvider.CONTENT_URI_NOTES, values).getLastPathSegment();
+                for(String h: iN.getHashtags()){
+                    values = new ContentValues();
+                    values.put(DBOpenHelper.TAGS_NOTE_ID, nId);
+                    values.put(DBOpenHelper.TAGS_TEXT, h);
+                    getContentResolver().insert(NotesProvider.CONTENT_URI_TAGS, values);
+                }
+            }
+
+            restartLoader();
+
+            Toast.makeText(getApplicationContext(),
+                    R.string.import_successful, Toast.LENGTH_SHORT).show();
+
+        } catch (FileNotFoundException e){
+            e.printStackTrace();
+            Toast.makeText(getApplicationContext(),
+                    R.string.no_file_to_import, Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(getApplicationContext(),
+                    R.string.import_failed, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -365,65 +422,6 @@ public class MainActivity extends AppCompatActivity
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == EDITOR_REQUEST_CODE && resultCode == RESULT_OK) {
             restartLoader();
-        } else if (requestCode == CHOOSE_FILE_REQUEST_CODE && resultCode == RESULT_OK) {
-            try {
-                Uri uri = data.getData();
-                InputStream is = getContentResolver().openInputStream(uri);
-                int size = is.available();
-                byte[] buffer = new byte[size];
-                is.read(buffer);
-                is.close();
-                String jsonString = new String(buffer, getString(R.string.utf_8));
-                JSONObject json = new JSONObject(jsonString);
-                JSONArray notes = json.getJSONArray(ExportActivity.JSON_NOTES);
-
-                ArrayList<ImportedNote> importedNotes = new ArrayList<>();
-
-                for(int i = 0; i < notes.length(); i++){
-                    JSONObject note = notes.getJSONObject(i);
-                    String created = note.getString(ExportActivity.JSON_CREATED);
-                    int important = note.getInt(ExportActivity.JSON_IMPORTANT) > 0? 1: 0;
-                    String text = note.getString(ExportActivity.JSON_TEXT);
-                    JSONArray hashtags = note.getJSONArray(ExportActivity.JSON_HASHTAGS);
-                    ArrayList<String> hashtagsArray = new ArrayList<>();
-                    Pattern p = Pattern.compile(getString(R.string.hashtags_pattern));
-                    for(int j = 0; j < hashtags.length(); j++){
-                        String h = hashtags.getString(j);
-                        Matcher m = p.matcher(text);
-
-                        if(m.matches()){
-                            hashtagsArray.add(h);
-                        } else {
-                            Log.d("MainActivity", "Hashtag format wrong");
-                            throw new Exception();
-                        }
-                    }
-
-                    importedNotes.add(new ImportedNote(created, important, text, hashtagsArray));
-                }
-
-                for(ImportedNote iN: importedNotes){
-                    ContentValues values = new ContentValues();
-                    values.put(DBOpenHelper.NOTE_CREATED, iN.getCreated());
-                    values.put(DBOpenHelper.NOTE_TEXT, iN.getText());
-                    values.put(DBOpenHelper.NOTE_IMPORTANT, iN.getImportant());
-                    String nId = getContentResolver().insert(NotesProvider.CONTENT_URI_NOTES, values).getLastPathSegment();
-                    for(String h: iN.getHashtags()){
-                        values = new ContentValues();
-                        values.put(DBOpenHelper.TAGS_NOTE_ID, nId);
-                        values.put(DBOpenHelper.TAGS_TEXT, h);
-                        getContentResolver().insert(NotesProvider.CONTENT_URI_TAGS, values);
-                    }
-                }
-
-                Toast.makeText(getApplicationContext(),
-                        R.string.import_successful, Toast.LENGTH_SHORT).show();
-
-            } catch (Exception e) {
-                e.printStackTrace();
-                Toast.makeText(getApplicationContext(),
-                        R.string.import_failed, Toast.LENGTH_SHORT).show();
-            }
         }
     }
 

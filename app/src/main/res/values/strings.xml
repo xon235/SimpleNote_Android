@@ -47,7 +47,7 @@
     <string name="all">All</string>
     <string name="editor_hint">What\'s on your mind?</string>
     <string name="title_activity_export">Export</string>
-    <string name="export_successful">Export successful\nDownloads/SimpleNote.json</string>
+    <string name="export_successful">Export successful\n/SimpleNote/SimpleNote.json</string>
     <string name="export_failed">Export failed</string>
     <string name="no_permission">No permission</string>
     <string name="export_file_name">SimpleNote.json</string>
@@ -55,16 +55,18 @@
     <string name="please_install_a_file_browser">Please install a File Browser.</string>
     <string name="import_successful">Import successful</string>
     <string name="import_failed">Import failed</string>
-    <string name="hashtags_pattern">(#.+)</string>
+    <string name="hashtags_pattern">(?:^|\\s|[\\p{Punct}&amp;&amp;[^/]])(#[\\p{L}0-9-_]+)</string>
     <string name="utf_8">UTF-8</string>
-    <string name="downloads_directory_not_found">Downloads directory not found</string>
+    <string name="failed_to_create_directory">Failed to create directory /SimpleNote</string>
     <string name="help">Help</string>
     <string name="title_activity_help">Help</string>
-    <string name="export_instruction">Your notes will be exported to Downloads directory in your device via JSON file (SimpleNote.json). This file can be imported later to restore notes. To find the exported file you will need a file browser.\n\nJSON file is just a formatted text file. So You can open the file with any text reader and copy the content if needed. However, changing the content may corrupt the file and later result in an import failure. So, Please be cautious.</string>
+    <string name="export_instruction">Your notes will be exported to /SimpleNote directory in your device via JSON file (SimpleNote.json). This file can be imported later to restore notes. To restore notes, place the file in the /SimpleNote directory.\n\nJSON file is just a formatted text file. So You can open the file with any text reader and copy the content if needed. However, changing the content may corrupt the file and later result in an import failure. So, Please be cautious.</string>
     <string name="help_add_hashtag">Just add # to your notes</string>
     <string name="help_export_import"><![CDATA[Export & Import]]></string>
     <string name="help_you_can_now_also_export_import"><![CDATA[You can now also export & import notes!]]></string>
     <string name="help_using_simple_json">Using simple JSON</string>
     <string name="help_tags">Tags</string>
     <string name="help_you_can_now_organize_your_notes_using_tags">You can now organize your notes using tags!</string>
+    <string name="export_dir_name">SimpleNote</string>
+    <string name="no_file_to_import">No file to import in /SimpleNote</string>
 </resources>
