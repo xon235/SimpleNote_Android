@@ -124,6 +124,7 @@ public class EditorActivity extends AppCompatActivity {
                         setResult(RESULT_OK);
                         finish();
                     } else {
+                        mNoteFilter = DBOpenHelper.NOTE_ID + "=" + uri.getLastPathSegment();
                         mUri = uri;
                         mAction = Intent.ACTION_EDIT;
                         mOldText = newText;
