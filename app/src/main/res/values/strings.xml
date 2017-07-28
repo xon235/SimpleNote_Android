@@ -69,4 +69,6 @@
     <string name="help_you_can_now_organize_your_notes_using_tags">You can now organize your notes using tags!</string>
     <string name="export_dir_name">SimpleNote</string>
     <string name="no_file_to_import">No file to import in /SimpleNote</string>
+    <string name="help_all_set">All set</string>
+    <string name="help_press_the_back_button">Press the back button to start taking notes!</string>
 </resources>

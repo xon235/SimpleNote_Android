@@ -26,7 +26,7 @@ public class HelpViewPagerAdapter extends PagerAdapter {
 
     @Override
     public int getCount() {
-        return 4;
+        return 5;
     }
 
     @Override
@@ -52,6 +52,11 @@ public class HelpViewPagerAdapter extends PagerAdapter {
                 headerTv.setText("");
                 backgroundIv.setImageDrawable(ContextCompat.getDrawable(mContext, R.drawable.help_export_import_json));
                 subTextTv.setText(R.string.help_using_simple_json);
+                break;
+            case 4:
+                headerTv.setText(R.string.help_all_set);
+                backgroundIv.setImageDrawable(ContextCompat.getDrawable(mContext, R.drawable.help_all_set));
+                subTextTv.setText(R.string.help_press_the_back_button);
                 break;
         }
 
